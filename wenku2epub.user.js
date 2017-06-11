@@ -18,7 +18,7 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/underscore.string/3.2.2/underscore.string.min.js
 // @require      https://cdn.rawgit.com/beautify-web/js-beautify/master/js/lib/beautify-html.js
 // @require      https://cdn.rawgit.com/malko/D.js/master/lib/D.min.js
-// @require      https://cdn.rawgit.com/johnmave126/js-epub-maker/574f1a59/dist/js-epub-maker.min.js
+// @require      https://cdn.rawgit.com/johnmave126/js-epub-maker/46af4cbd/dist/js-epub-maker.min.js
 // ==/UserScript==
 
 (function() {
