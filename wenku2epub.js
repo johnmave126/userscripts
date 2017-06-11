@@ -308,7 +308,7 @@
                 link.href = URL.createObjectURL(epubZipContent);
                 link.download = filename;
                 link.removeEventListener('click', downloadNovel);
-            });
+            }, true);
         });
     }
 
