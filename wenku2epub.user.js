@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Wenku8 EPUB Generator
 // @namespace    http://youmu.moe/
-// @version      0.1
+// @version      0.2
 // @description  Export wenku8 lightnovel to epub
 // @author       Shuhao Tan
 // @match        http://www.wenku8.com/book/*.htm
@@ -11,6 +11,7 @@
 // @connect      wkcdn.com
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getResourceText
+// @grant        GM_addStyle
 // @require      https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.2/handlebars.min.js
 // @require      https://cdn.rawgit.com/eligrey/FileSaver.js/master/FileSaver.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js
@@ -18,7 +19,7 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/underscore.string/3.2.2/underscore.string.min.js
 // @require      https://cdn.rawgit.com/beautify-web/js-beautify/master/js/lib/beautify-html.js
 // @require      https://cdn.rawgit.com/malko/D.js/master/lib/D.min.js
-// @require      https://cdn.rawgit.com/johnmave126/js-epub-maker/065fd68e/dist/js-epub-maker.min.js
+// @require      https://cdn.rawgit.com/bbottema/js-epub-maker/77fe20da/dist/js-epub-maker.min.js
 // ==/UserScript==
 
 (function() {
@@ -191,7 +192,8 @@
                             var link;
                             if(!!(link = cells[i].querySelector('a'))) {
                                 var chapter = {
-                                    title: link.textContent
+                                    title: link.textContent,
+                                    files: []
                                 };
                                 var promise = loadHTML(link.href).then((function(chapter) {
                                     return function(doc) {
@@ -207,6 +209,7 @@
                                             var deferred = FileDatabase.getFilename(images[i].src, 'image')
                                                 .then((function(img) {
                                                     return function(res) {
+                                                        chapter.files.push(res);
                                                         img.setAttribute('src', 'images/' + res.filename);
                                                         if(img.parentNode.nodeName.toLowerCase() == 'a') {
                                                             var a = img.parentNode;
@@ -265,6 +268,7 @@
                     console.log(err);
                 })
             ).then(function(res) {
+                novel_info = final_obj;
                 return final_obj;
             });
         }
@@ -312,18 +316,181 @@
         });
     }
 
+    function downloadNovelOne(e) {
+        e.preventDefault();
+        var link = e.target;
+        var volid = parseInt(link.dataset.volid);
+        var vol = novel_info.vol[volid];
+        var epubMaker = new EpubMaker()
+                        .withUuid('wenku8::lightnovelnovel::' + novel_info.id)
+                        .withTemplate('lightnovel')
+                        .withAuthor(novel_info.author)
+                        .withLanguage('zh-Cn')
+                        .withModificationDate(novel_info.last_update)
+                        .withPublisher(novel_info.publisher)
+                        .withCover(novel_info.cover.url)
+                        .withOption('coverFilename', novel_info.cover.filename)
+                        .withOption('tocName', '目录')
+                        .withTitle(novel_info.title + ' ' + vol.title);
+
+        for(var j = 0; j < vol.chapters.length; j++) {
+            var chapter = vol.chapters[j];
+            epubMaker = epubMaker.withSection(new EpubMaker.Section('', '', {
+                title: chapter.title,
+                renderTitle: true,
+                content: chapter.content
+            }));
+        }
+
+        var files = vol.chapters.reduce(function(r, c) {
+            return r.concat(c.files);
+        }, []);
+        for(var i = 0; i < files.length; i++) {
+            epubMaker = epubMaker.withAdditionalFile(files[i].url, 'images', files[i].filename);
+        }
+
+        epubMaker.downloadEpub(function(epubZipContent, filename){
+            link.href = URL.createObjectURL(epubZipContent);
+            link.download = filename;
+            link.removeEventListener('click', downloadNovel);
+        }, true);
+}
+
+    function downloadNovelVols(e) {
+        e.preventDefault();
+        vols_pseudo_container.classList.remove('hidden');
+        var loading_div = vols_pseudo_container.querySelector('.loading');
+        if(loading_div) {
+            loadNovel().then(function(novel_info) {
+                var loading_div = vols_pseudo_container.querySelector('.loading');
+                if(!loading_div) {
+                    return;
+                }
+                vols_container.removeChild(loading_div);
+                var table = document.createElement('table');
+                table.classList.add('grid');
+                table.setAttribute('align', 'center');
+                vols_container.appendChild(table);
+                var caption = document.createElement('caption');
+                caption.textContent = "《" + novel_info.title + "》EPUB下载 | 分卷";
+                table.appendChild(caption);
+                var tbody = document.createElement('tbody');
+                table.appendChild(tbody);
+                //Head
+                var tr_head = document.createElement('tr');
+                tr_head.innerHTML = '<th width="85%">卷别</th><th width="15%">下载</th>';
+                tbody.appendChild(tr_head);
+                for(var i = 0; i < novel_info.vol.length; i++) {
+                    var tr = document.createElement('tr'),
+                        td_title = document.createElement('td'),
+                        td_download = document.createElement('td'),
+                        download_link = document.createElement('a');
+                    td_title.textContent = novel_info.vol[i].title;
+                    download_link.textContent = "下载EPUB";
+                    download_link.href = '#';
+                    download_link.setAttribute('data-volid', i);
+                    download_link.addEventListener('click', downloadNovelOne);
+                    td_download.appendChild(download_link);
+                    tr.appendChild(td_title);
+                    tr.appendChild(td_download);
+                    tbody.appendChild(tr);
+                }
+            });
+        }
+    }
+
     var target_container = document.querySelector('fieldset[style*="660px"]');
     var legend = target_container.querySelector('legend');
     var buttons = target_container.querySelectorAll('div');
     legend.textContent = legend.textContent.replace('JAR', 'JAR、EPUB');
     for(var i = 0; i < buttons.length; i++) {
-        buttons[i].style.width = '130px';
+        buttons[i].style.width = '110px';
     }
-    var newbutton = buttons[1].cloneNode(true);
-    var link = newbutton.querySelector('a');
-    link.href = '#';
-    link.textContent = link.textContent.replace(/TXT../g, 'EPUB');
-    target_container.appendChild(newbutton);
+    var download_all_btn = buttons[1].cloneNode(true);
+    var download_all_link = download_all_btn.querySelector('a');
+    download_all_link.href = '#';
+    download_all_link.textContent = download_all_link.textContent.replace(/TXT../g, 'EPUB');
+    download_all_link.addEventListener('click', downloadNovel);
+    target_container.appendChild(download_all_btn);
 
-    link.addEventListener('click', downloadNovel);
+    var download_vols_btn = buttons[2].cloneNode(true);
+    var download_vols_link = download_vols_btn.querySelector('a');
+    download_vols_link.href = '#';
+    download_vols_link.textContent = download_vols_link.textContent.replace(/UMD/g, 'EPUB');
+    download_vols_link.addEventListener('click', downloadNovelVols);
+    target_container.appendChild(download_vols_btn);
+
+    var vols_pseudo_container = document.createElement('div'),
+        vols_container = document.createElement('div'),
+        loading_div = document.createElement('div');
+    vols_pseudo_container.setAttribute('id', 'epub-vols-pseudo-container');
+    vols_pseudo_container.classList.add('hidden');
+    vols_pseudo_container.addEventListener('click', function() {
+        vols_pseudo_container.classList.add('hidden');
+    });
+    vols_container.setAttribute('id', 'epub-vols-container');
+    vols_pseudo_container.appendChild(vols_container);
+    vols_container.addEventListener('click', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    });
+    loading_div.classList.add('loading');
+    loading_div.textContent = '载入中...';
+    vols_container.appendChild(loading_div);
+    GM_addStyle(".hidden {"
+                    + "display: none !important;"
+                +"}"
+                +"#epub-vols-pseudo-container {"
+                    + "display: flex;"
+                    + "position: fixed;"
+                    + "left: 0;"
+                    + "right: 0;"
+                    + "top: 0;"
+                    + "bottom: 0;"
+                    + "width: auto;"
+                    + "height: auto;"
+                    + "justify-content: center;"
+                    + "align-items: center;"
+                    + "background: rgba(255, 255, 255, 0.6);"
+                +"}"
+                +"#epub-vols-container {"
+                    + "width: 600px;"
+                    + "max-height: 80%;"
+                    + "overflow-y: auto;"
+                    + "border: 1px solid black;"
+                    + "background: white;"
+                    + "padding: 10px;"
+                +"}"
+                +"#epub-vols-container > * {"
+                    + "width: 100%;"
+                    + "height: 100%;"
+                    + "text-align: center;"
+                +"}"
+                +".loading::before {"
+                    + "content: ' ';"
+                    + "display: inline-block;"
+                    + "width: 15px;"
+                    + "height: 15px;"
+                    + "box-sizing: border-box;"
+                    + "border-radius: 50%;"
+                    + "border-left: 2px solid black;"
+                    + "border-right: 2px solid black;"
+                    + "border-bottom: 2px solid black;"
+                    + "border-top: 2px solid transparent;"
+                    + "animation-name: rotate;"
+                    + "animation-duration: 1s;"
+                    + "animation-timing-function: linear;"
+                    + "animation-iteration-count: infinite;"
+                    + "vertical-align: text-bottom;"
+                    + "margin-right: 5px;"
+                +"}"
+                +"@keyframes rotate {"
+                    + "from {"
+                        + "transform: rotate(45deg);"
+                    + "}"
+                    + "to {"
+                        + "transform: rotate(405deg);"
+                    + "}"
+                +"}");
+    document.body.appendChild(vols_pseudo_container);
 })();
