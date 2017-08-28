@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Wenku8 EPUB Generator
 // @namespace    http://youmu.moe/
-// @version      0.2
+// @version      0.2.1
 // @description  Export wenku8 lightnovel to epub
 // @author       Shuhao Tan
 // @match        http://www.wenku8.com/book/*.htm
@@ -276,6 +276,7 @@
 
     function downloadNovel(e) {
         e.preventDefault();
+        var link = e.target;
         loadNovel().then(function(novel_info) {
             var epubMaker = new EpubMaker()
                             .withUuid('wenku8::lightnovelnovel::' + novel_info.id)
