@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Gradescope+
 // @namespace    http://youmu.moe/
-// @version      0.1
+// @version      0.2
 // @description  Add more shortcuts for Gradescope
 // @author       Shuhao Tan
 // @match        https://gradescope.com/courses/*/superfast_grade
+// @match        https://gradescope.com/courses/*/grade
 // @grant        GM_addStyle
 // ==/UserScript==
 
