@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         Gradescope+
 // @namespace    http://youmu.moe/
-// @version      0.2
+// @version      0.4
 // @description  Add more shortcuts for Gradescope
 // @author       Shuhao Tan
-// @match        https://gradescope.com/courses/*/superfast_grade
-// @match        https://gradescope.com/courses/*/grade
+// @match        https://gradescope.com/courses/*/submissions/*/superfast_grade
+// @match        https://gradescope.com/courses/*/submissions/*/grade
+// @match        https://www.gradescope.com/courses/*/submissions/*/superfast_grade
+// @match        https://www.gradescope.com/courses/*/submissions/*/grade
 // @grant        GM_addStyle
 // ==/UserScript==
 
@@ -13,9 +15,10 @@
     'use strict';
     const ToolMap = {
         'NORMAL': 'T', //Hand
-        'DRAW_FREEFORM_ANNOTATION': 'Y', //Pen
-        'DRAW_BOX_ANNOTATION': 'U', //Rectangle
-        'ERASE_ANNOTATION': 'I', //Eraser
+        'DRAW_TEXT_ANNOTATION': 'Y',
+        'DRAW_FREEFORM_ANNOTATION': 'U', //Pen
+        'DRAW_BOX_ANNOTATION': 'I', //Rectangle
+        'ERASE_ANNOTATION': 'O', //Eraser
     };
 
     //Helpers
@@ -50,6 +53,7 @@
     // Add shortcut indications
     rBtnBar._currentElement.type.prototype.renderButton = function(e, t) {
         let elem = _renderButton.call(this, e, t);
+        console.log(e);
         Object.assign(elem.props, {
             title: `Shortcut: ${ToolMap[e]}`
         });
