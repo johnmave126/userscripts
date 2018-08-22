@@ -6,3 +6,4 @@ My userscripts
   - Press T, Y, U, I to switch to hand, free-form drawing, rectangle drawing, eraser, respectively
   - Press Home to go to the first problem
   - Always set current tool to hand after drawing a rectangle or erasing something.
+- [Unlinkify](unlinkify.user.js) Right click on a link while holding CTRL to unlinkify a link for easier copy & paste
