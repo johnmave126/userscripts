@@ -2,7 +2,7 @@
 // @name            Unlinkify
 // @namespace       http://youmu.moe/
 // @description     Right click on a link while holding CTRL to unlinkify a link for easier copy & paste
-// @version         0.2
+// @version         0.3
 // @author          Youmu Chan
 // @include         *
 // @exclude         file://*
@@ -34,6 +34,7 @@
         dialog.setAttribute('id', 'tm_unlinkify_dialog');
         document.body.appendChild(dialog);
         GM_addStyle("#tm_unlinkify_dialog {padding: 0; border: 0; border-radius: 0.6rem; box-shadow: 0 0 1em black; max-width: 50%; margin: auto}");
+        GM_addStyle("#tm_unlinkify_dialog:not([open]) {display: none!important;}");
         dialog.addEventListener('click', () => prepClose && dialog.close());
         dialog.addEventListener('mousedown', () => {prepClose = true;});
 
