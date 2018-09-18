@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gradescope+
 // @namespace    http://youmu.moe/
-// @version      0.4
+// @version      0.5
 // @description  Add more shortcuts for Gradescope
 // @author       Shuhao Tan
 // @match        https://gradescope.com/courses/*/submissions/*/superfast_grade
@@ -53,7 +53,6 @@
     // Add shortcut indications
     rBtnBar._currentElement.type.prototype.renderButton = function(e, t) {
         let elem = _renderButton.call(this, e, t);
-        console.log(e);
         Object.assign(elem.props, {
             title: `Shortcut: ${ToolMap[e]}`
         });
@@ -119,6 +118,7 @@
     var _renderLink = rProblem._currentElement.type.prototype.renderLink;
     rProblem._currentElement.type.prototype.renderLink = function() {
         var elem = _renderLink.apply(this, arguments);
+        console.log(rProblemParent._currentElement.props);
         if(this.props.currentQuestionId === rProblemParent._currentElement.props.leafQuestions[0].id) {
             elem.props.className += ' questionSwitcher--questionTitle-is-first';
         }
@@ -132,6 +132,12 @@
     }
     rProblem._instance.forceUpdate();
     rProblem._renderedComponent._renderedChildren['.1']._instance.forceUpdate();
+
+    // Add select page quick menu
+    const submissionData = JSON.parse($$('#main-content > div').dataset.reactProps);
+    unsafeWindow.key('x', () => {
+        unsafeWindow.open(`https://www.gradescope.com/courses/${submissionData.course.id}/assignments/${submissionData.assignment.id}/submissions/${submissionData.assignment_submission.id}/select_pages`);
+    });
 
     GM_addStyle(".questionSwitcher--questionTitle-is-first { width: calc(100% - 80px); }");
 })();
