@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gradescope+
 // @namespace    http://youmu.moe/
-// @version      0.6
+// @version      0.7
 // @description  Add more shortcuts for Gradescope
 // @author       Shuhao Tan
 // @match        https://gradescope.com/courses/*/submissions/*/superfast_grade
@@ -133,12 +133,12 @@
     rProblem._renderedComponent._renderedChildren['.1']._instance.forceUpdate();
 
     // Add select page quick menu
-    const root = $$('#main-content > div > main');
-    const rRoot = findOwner(findReactInt(root)._currentElement);
-    const regradeRequestUrl = rRoot._instance.props.urls.regradeRequest;
-    const [_, courseid, assignmentid, submissionid] = regradeRequestUrl.match(/courses\/(\d+)\/assignments\/(\d+)\/submissions\/(\d+)/);
 
     unsafeWindow.key('x', () => {
+        const root = $$('#main-content main > div.l-contentWrapper');
+        const rRoot = findOwner(findReactInt(root)._currentElement)._instance;
+        const regradeUrl = rRoot.props.urls.regradeRequest;
+        const [_, courseid, assignmentid, submissionid] = regradeUrl.match(/courses\/(\d+)\/assignments\/(\d+)\/submissions\/(\d+)/);
         unsafeWindow.open(`https://www.gradescope.com/courses/${courseid}/assignments/${assignmentid}/submissions/${submissionid}/select_pages`);
     });
 
