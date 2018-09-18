@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gradescope+
 // @namespace    http://youmu.moe/
-// @version      0.5
+// @version      0.6
 // @description  Add more shortcuts for Gradescope
 // @author       Shuhao Tan
 // @match        https://gradescope.com/courses/*/submissions/*/superfast_grade
@@ -118,7 +118,6 @@
     var _renderLink = rProblem._currentElement.type.prototype.renderLink;
     rProblem._currentElement.type.prototype.renderLink = function() {
         var elem = _renderLink.apply(this, arguments);
-        console.log(rProblemParent._currentElement.props);
         if(this.props.currentQuestionId === rProblemParent._currentElement.props.leafQuestions[0].id) {
             elem.props.className += ' questionSwitcher--questionTitle-is-first';
         }
@@ -134,9 +133,13 @@
     rProblem._renderedComponent._renderedChildren['.1']._instance.forceUpdate();
 
     // Add select page quick menu
-    const submissionData = JSON.parse($$('#main-content > div').dataset.reactProps);
+    const root = $$('#main-content > div > main');
+    const rRoot = findOwner(findReactInt(root)._currentElement);
+    const regradeRequestUrl = rRoot._instance.props.urls.regradeRequest;
+    const [_, courseid, assignmentid, submissionid] = regradeRequestUrl.match(/courses\/(\d+)\/assignments\/(\d+)\/submissions\/(\d+)/);
+
     unsafeWindow.key('x', () => {
-        unsafeWindow.open(`https://www.gradescope.com/courses/${submissionData.course.id}/assignments/${submissionData.assignment.id}/submissions/${submissionData.assignment_submission.id}/select_pages`);
+        unsafeWindow.open(`https://www.gradescope.com/courses/${courseid}/assignments/${assignmentid}/submissions/${submissionid}/select_pages`);
     });
 
     GM_addStyle(".questionSwitcher--questionTitle-is-first { width: calc(100% - 80px); }");
