@@ -8,3 +8,4 @@ My userscripts
   - Press Home to go to the first problem
   - Always set current tool to hand after drawing a rectangle or erasing something.
 - [Unlinkify](unlinkify.user.js) Right click on a link while holding CTRL to unlinkify a link for easier copy & paste
+- [Open in APP mode](appmode.user.js) Open the current window in app mode (no menubar, no toolbar)
